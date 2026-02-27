@@ -11,8 +11,16 @@ from bot.core.engine import run_scan
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Polymarket weather signal bot")
-    parser.add_argument("--config", default="config/config.yaml", help="Config YAML path (optional)")
-    parser.add_argument("--mode", choices=("scan", "alert"), default="alert")
+    parser.add_argument(
+        "--config",
+        default=os.getenv("BOT_CONFIG_PATH", "config/config.yaml"),
+        help="Config YAML path (optional)",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=("scan", "alert", "paper"),
+        default=os.getenv("BOT_MODE", "alert"),
+    )
     parser.add_argument("--once", action="store_true", help="Run one scan and exit")
     return parser.parse_args()
 
@@ -24,7 +32,7 @@ def main() -> int:
 
     run_once = args.once or os.getenv("BOT_RUN_ONCE", "").lower() in {"1", "true", "yes"}
     while True:
-        payload = run_scan(cfg)
+        payload = run_scan(cfg, mode=args.mode)
         print(json.dumps(payload), flush=True)
         if args.mode == "scan" or run_once:
             return 0
@@ -33,4 +41,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -1,9 +1,29 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 import requests
+
+TEMP_HINT_RE = re.compile(r"\b(?:-?\d{1,3}\s*°?\s*[fc]|degrees?|fahrenheit|celsius|temperature|temp|high|low)\b")
+WEATHER_EVENT_RE = re.compile(
+    r"\b(?:weather|rain|snow|precip(?:itation)?|storm|thunder|wind|hurricane|tornado|blizzard|landfall|forecast)\b"
+)
+LOCATION_HINT_RE = re.compile(r"\b(?:in|at|for)\s+[A-Za-z]")
+
+BLOCKLIST_TERMS = (
+    "carolina hurricanes",
+    "stanley cup",
+    "nhl",
+    "fifa",
+    "nba",
+    "nfl",
+    "mlb",
+    "ceasefire",
+    "senator",
+    "guilty",
+)
 
 
 def _to_float(value: Any, default: float = 0.0) -> float:
@@ -50,7 +70,22 @@ def _extract_liquidity(market: dict[str, Any]) -> float:
 
 def _is_weather_market(question: str, keywords: list[str]) -> bool:
     q = question.lower()
-    return any(keyword.lower() in q for keyword in keywords)
+    if any(term in q for term in BLOCKLIST_TERMS):
+        return False
+
+    keyword_hit = any(keyword.lower() in q for keyword in keywords)
+    weather_event_hit = WEATHER_EVENT_RE.search(q) is not None
+    temp_hint_hit = TEMP_HINT_RE.search(q) is not None
+    location_hint_hit = LOCATION_HINT_RE.search(question) is not None
+
+    if not keyword_hit and not weather_event_hit:
+        return False
+
+    # "Hurricane" is often a sports team reference; require stronger context.
+    if "hurricane" in q and not any(token in q for token in ("weather", "storm", "wind", "landfall", "category")):
+        return False
+
+    return weather_event_hit and (temp_hint_hit or location_hint_hit or "weather" in q)
 
 
 def _normalize_markets(payload: Any) -> list[dict[str, Any]]:
@@ -110,4 +145,3 @@ def fetch_weather_candidates(cfg: dict[str, Any]) -> list[dict[str, Any]]:
         )
 
     return sorted(candidates, key=lambda x: x["liquidity"], reverse=True)
-

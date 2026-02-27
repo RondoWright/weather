@@ -3,7 +3,7 @@ from __future__ import annotations
 import copy
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import yaml
 
@@ -42,10 +42,22 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "min_edge_bps": 300,
         "min_confidence": 0.55,
     },
+    "paper": {
+        "enabled": False,
+        "state_path": "state/paper_state.json",
+        "starting_cash_usd": 10000.0,
+        "position_size_usd": 100.0,
+        "max_open_positions": 12,
+        "close_edge_bps": 100,
+    },
 }
 
 
-ENV_MAP: dict[str, tuple[str, callable]] = {
+def _parse_bool(raw: str) -> bool:
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+ENV_MAP: dict[str, tuple[str, Callable[[str], Any]]] = {
     "BOT_SCAN_INTERVAL_SECONDS": ("bot.scan_interval_seconds", int),
     "BOT_SCAN_LIMIT": ("bot.scan_limit", int),
     "BOT_REQUEST_TIMEOUT_SECONDS": ("bot.request_timeout_seconds", int),
@@ -60,6 +72,12 @@ ENV_MAP: dict[str, tuple[str, callable]] = {
     "WEATHER_LOOKAHEAD_HOURS": ("weather.lookahead_hours", int),
     "SIGNAL_MIN_EDGE_BPS": ("signal.min_edge_bps", int),
     "SIGNAL_MIN_CONFIDENCE": ("signal.min_confidence", float),
+    "PAPER_ENABLED": ("paper.enabled", _parse_bool),
+    "PAPER_STATE_PATH": ("paper.state_path", str),
+    "PAPER_STARTING_CASH_USD": ("paper.starting_cash_usd", float),
+    "PAPER_POSITION_SIZE_USD": ("paper.position_size_usd", float),
+    "PAPER_MAX_OPEN_POSITIONS": ("paper.max_open_positions", int),
+    "PAPER_CLOSE_EDGE_BPS": ("paper.close_edge_bps", int),
 }
 
 
@@ -102,4 +120,3 @@ def load_config(config_path: str | None) -> dict[str, Any]:
         set_path(cfg, path, parser(raw_value))
 
     return cfg
-

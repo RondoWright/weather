@@ -26,3 +26,10 @@ signal:
   min_edge_bps: 300
   min_confidence: 0.55
 
+paper:
+  enabled: false
+  state_path: "state/paper_state.json"
+  starting_cash_usd: 10000
+  position_size_usd: 100
+  max_open_positions: 12
+  close_edge_bps: 100
