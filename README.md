@@ -1,0 +1,66 @@
+# Polymarket Weather Bot
+
+Scans active weather-related Polymarket markets, estimates model probability from Open-Meteo forecasts, and emits JSON trading signals.
+
+## What It Does
+
+- pulls active markets from Polymarket Gamma
+- filters weather-like questions
+- estimates model `YES` probability from weather data
+- computes edge (bps) vs market `YES` price
+- emits `BUY_YES` / `BUY_NO` alerts when thresholds pass
+
+## Local Run
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp config/config.example.yaml config/config.yaml
+python -m bot.main --config config/config.yaml --mode scan --once
+```
+
+## Railway Deploy
+
+This repo includes:
+
+- `Procfile`
+- `railway.json`
+- `runtime.txt`
+
+Default start command:
+
+```bash
+python -m bot.main --mode alert --config config/config.yaml
+```
+
+## Config Fallback (Env-Only Mode)
+
+If `config/config.yaml` is missing, the bot still runs using defaults + env vars.
+
+Recommended env vars on Railway:
+
+- `PYTHONUNBUFFERED=1`
+- `BOT_SCAN_INTERVAL_SECONDS=300`
+- `BOT_SCAN_LIMIT=75`
+- `POLYMARKET_MIN_LIQUIDITY=1000`
+- `SIGNAL_MIN_EDGE_BPS=300`
+- `SIGNAL_MIN_CONFIDENCE=0.55`
+- `WEATHER_LOOKAHEAD_HOURS=72`
+
+Optional endpoint overrides:
+
+- `POLYMARKET_GAMMA_URL`
+- `WEATHER_GEOCODE_URL`
+- `WEATHER_FORECAST_URL`
+
+Optional list override:
+
+- `POLYMARKET_WEATHER_KEYWORDS=weather,temperature,rain,snow,wind`
+
+## Notes
+
+- This is alert/scanning logic only. It does not execute trades.
+- Use `--once` for one-pass checks.
+- For always-on Railway worker mode, omit `--once`.
+

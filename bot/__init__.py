@@ -1,0 +1,2 @@
+"""Polymarket weather bot package."""
+

@@ -1,0 +1,28 @@
+bot:
+  scan_interval_seconds: 300
+  scan_limit: 75
+  request_timeout_seconds: 12
+
+polymarket:
+  gamma_url: "https://gamma-api.polymarket.com/markets"
+  min_liquidity: 1000
+  weather_keywords:
+    - weather
+    - temperature
+    - rain
+    - snow
+    - precip
+    - hurricane
+    - wind
+    - hot
+    - cold
+
+weather:
+  geocode_url: "https://geocoding-api.open-meteo.com/v1/search"
+  forecast_url: "https://api.open-meteo.com/v1/forecast"
+  lookahead_hours: 72
+
+signal:
+  min_edge_bps: 300
+  min_confidence: 0.55
+
